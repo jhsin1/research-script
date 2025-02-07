@@ -45,10 +45,25 @@ public class script
             }
         }
 
-        for (String key : listofMaps.get(2).keySet())
+
+        // for contention
+        for (int i = 0; i < 1; i++)
         {
-            System.out.println("Key: " + key + ", Annotators: " + listofMaps.get(2).get(key).toString());
+            for (String key : listofMaps.get(i).keySet()) {
+                if (listofMaps.get(i).get(key).size() == 3) {
+                    String s = String.format("%-30s", key);
+                    System.out.println("Key: " + s + ", Annotators: " + listofMaps.get(i).get(key).toString());
+                }
+            }
         }
+
+        // all
+        
+        // for (String key : listofMaps.get(2).keySet()) {
+        //     String s = String.format("%-30s", key);
+        //     System.out.println("Key: " + s + ", Annotators: " + listofMaps.get(2).get(key).toString());
+        // }
+
 
 
         // testing
