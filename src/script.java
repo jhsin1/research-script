@@ -13,69 +13,70 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.*; 
 
 
-public class script
-{ 
-    public static void main(String[] args) throws Exception  
-    { 
-        List<Map<String, Set<String>>> listofMaps = new ArrayList<>();
-        for (int i = 0; i < 6; i++) listofMaps.add(new HashMap<>());
-
+public class script { 
+    public static void main(String[] args) throws Exception { 
+        Map<Integer, Map<String, Set<String>>> map_of_courses = new HashMap<>();
         File folder = new File("files");
-        for (File file : folder.listFiles())
-        {
+        File[] f_direct = folder.listFiles();
+
+        for (File file : f_direct) {
             String fn = "files/" + file.getName();
-            List<List<String>> list = conceptListGenerator(fn);
-            for (int i = 0; i < list.size(); i++) // i = course orders, which should correspond to the map # 
-            {
-                List<String> listofConcepts = list.get(i);
-                Map<String, Set<String>> map = listofMaps.get(i);
-                for (String concept : listofConcepts)
-                {
-                    if (map.containsKey(concept))
-                    {
-                        map.get(concept).add(fn.substring(6, fn.length()-6));
-                    }
-                    else
-                    {
-                        Set<String> la = new HashSet<>();
-                        la.add(fn.substring(6, fn.length()-6)); 
-                        map.put(concept, la);
+            Map<Integer, List<String>> annotation_list = conceptListGenerator(fn); // 
+
+            for (Integer key_id : annotation_list.keySet()) {
+                List<String> listofConcepts = annotation_list.get(key_id);
+
+                if (map_of_courses.containsKey(key_id)) { // THERE IS A MAP<STRING, SET<STRING>>
+                    for (String concept : listofConcepts) {
+                        if (map_of_courses.get(key_id).containsKey(concept))
+                            map_of_courses.get(key_id).get(concept).add(fn.substring(6, fn.length()-6)); // add the name of annotator to this concept list
+                        else
+                        {
+                            Set<String> la = new HashSet<>(); // la for list of annotators
+                            la.add(fn.substring(6, fn.length()-6)); 
+                            map_of_courses.get(key_id).put(concept, la);
+                        }
                     }
                 }
-            }
-        }
+                else { // IF THERE ISNT A MAP<STRING, SET<STRING>>
+                    Map<String, Set<String>> map = new HashMap<>();
+                    for (String concept : listofConcepts) {
+                        if (map.containsKey(concept))
+                            map.get(concept).add(fn.substring(6, fn.length()-6)); // add the name of annotator to this concept list
+                        else
+                        {
+                            Set<String> la = new HashSet<>(); // la for list of annotators
+                            la.add(fn.substring(6, fn.length()-6)); 
+                            map.put(concept, la);
+                        }
+                    }
 
+                    map_of_courses.put(key_id, map);
+                }
+
+            }
+
+        }
 
         // for contention
-        for (int i = 0; i < 1; i++)
+        // !! change course id here !!
+        // int course_id = 292; // 290  291 292 293 294 295
+        for (int i = 290; i >= 295; i++)
         {
-            for (String key : listofMaps.get(i).keySet()) {
-                if (listofMaps.get(i).get(key).size() == 3) {
-                    String s = String.format("%-30s", key);
-                    System.out.println("Key: " + s + ", Annotators: " + listofMaps.get(i).get(key).toString());
-                }
+            Map<String, Set<String>> mp = map_of_courses.get(i);
+            System.out.println("Course ID: " + i);
+            for (String key : mp.keySet()) {
+                // if (listofMaps.get(i).get(key).size() == 3) {
+                String s = String.format("%-30s", key); 
+                System.out.println("Key: " + s + ", Annotators: " + mp.get(key).toString());
+                // }
             }
         }
+    }
 
-        // all
-        
-        // for (String key : listofMaps.get(2).keySet()) {
-        //     String s = String.format("%-30s", key);
-        //     System.out.println("Key: " + s + ", Annotators: " + listofMaps.get(2).get(key).toString());
-        // }
-
-
-
-        // testing
-
-        // List<List<String>> list = conceptListGenerator("files/jessica.jsonl");
-
-        // System.out.println(list.get(1).toString());
-    } 
-
-    private static List<List<String>> conceptListGenerator(String filename) throws Exception
+    private static Map<Integer, List<String>> conceptListGenerator(String filename) throws Exception
     {
-        List<List<String>> res = new ArrayList<>();
+        Map<Integer, List<String>> res = new HashMap<>();
 
         BufferedReader br = new BufferedReader(new FileReader(filename, java.nio.charset.StandardCharsets.UTF_8));
         String line;
@@ -85,6 +86,7 @@ public class script
             Object obj = new JSONParser().parse(line);
             JSONObject jo = (JSONObject) obj; 
 
+            long id = (long) jo.get("id");
             String text = (String) jo.get("text"); 
             JSONArray concepts = (JSONArray) jo.get("label");
 
@@ -93,9 +95,10 @@ public class script
                 JSONArray concept = (JSONArray) concepts.get(i);
                 long i1 = (long) concept.get(0);
                 long i2 = (long) concept.get(1);
-                list.add(text.substring((int) i1, (int) i2));
+                String c = text.substring((int) i1, (int) i2);
+                list.add(c); // adds the concept to list
             }
-            res.add(list);
+            res.put((int) id, list);
         }
 
         return res;
