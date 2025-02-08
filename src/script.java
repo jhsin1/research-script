@@ -1,7 +1,10 @@
 package src;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.Buffer;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
@@ -11,7 +14,6 @@ import java.util.Set;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject; 
 import org.json.simple.parser.*; 
-
 
 public class script { 
     public static void main(String[] args) throws Exception { 
@@ -53,25 +55,30 @@ public class script {
 
                     map_of_courses.put(key_id, map);
                 }
-
             }
-
         }
 
-        // for contention
-        // !! change course id here !!
-        // int course_id = 292; // 290  291 292 293 294 295
-        for (int i = 290; i >= 295; i++)
+        //
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter("with_contention_medium.txt"));
+
+        // printing test
+        for (int i = 290; i <= 295; i++)
         {
             Map<String, Set<String>> mp = map_of_courses.get(i);
+            writer.write("\nFiltered by contention level medium (2-to-4 or 4-to-2)\nCourse ID: " + i + "\n\n");
             System.out.println("Course ID: " + i);
             for (String key : mp.keySet()) {
-                // if (listofMaps.get(i).get(key).size() == 3) {
-                String s = String.format("%-30s", key); 
-                System.out.println("Key: " + s + ", Annotators: " + mp.get(key).toString());
-                // }
+                if (map_of_courses.get(i).get(key).size() == 2 || map_of_courses.get(i).get(key).size() == 4) { // this is for contention!! // commment this statement out for the whole list
+                    String s = String.format("%-30s", key); 
+                    String text = "Key: " + s + ", Annotators: " + mp.get(key).toString();
+                    writer.write(text + "\n");
+                    System.out.println(text);
+                }
             }
         }
+
+        writer.close();
     }
 
     private static Map<Integer, List<String>> conceptListGenerator(String filename) throws Exception
